@@ -5,6 +5,8 @@
 # Variabili di compilazione
 CXX      := $(CCPREFIX)g++
 CXXFLAGS := -O3 -Iinclude -pthread -std=gnu++11 $(CCSYSROOT)
+CXXFLAGS += -ffunction-sections -fdata-sections -flto
+LDFLAGS  += -Wl,--gc-sections
 AR       := $(CCPREFIX)ar
 ARFLAGS  := rcs
 STRIP    := $(CCPREFIX)strip --strip-all
@@ -29,7 +31,7 @@ TOOLS_SRCS := tools/RNG_test.cpp tools/RNG_benchmark.cpp tools/RNG_output.cpp
 .PHONY: all clean
 
 all: $(LIB_NAME) $(BINS)
-	@echo "Build completata."
+	@echo "Build completed."
 	@du -ks $(LIB_NAME) $(BINS) | sort -n
 
 # Regola per la libreria statica
@@ -43,15 +45,7 @@ $(LIB_NAME): $(LIB_OBJS)
 	$(CXX) -c $< -o $@ $(CXXFLAGS)
 
 # Regole per gli eseguibili
-RNG_test: tools/RNG_test.cpp $(LIB_NAME)
-	$(CXX) -o $@ $< $(CXXFLAGS) $(LIB_NAME)
-	$(STRIP) $@
-
-RNG_benchmark: tools/RNG_benchmark.cpp $(LIB_NAME)
-	$(CXX) -o $@ $< $(CXXFLAGS) $(LIB_NAME)
-	$(STRIP) $@
-
-RNG_output: tools/RNG_output.cpp $(LIB_NAME)
+$(BINS): %: tools/%.cpp $(LIB_NAME)
 	$(CXX) -o $@ $< $(CXXFLAGS) $(LIB_NAME)
 	$(STRIP) $@
 
