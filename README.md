@@ -56,3 +56,6 @@ Expected results compiled dymamic against glibc:
 2208	RNG_output
 2268	RNG_test
 ```
+
+Or use the `Makefile` in the standard way `make -j$(nproc)`
+
