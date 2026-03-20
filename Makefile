@@ -3,10 +3,11 @@
 #
 
 # Variabili di compilazione
-CXX      := g++
-CXXFLAGS := -O3 -Iinclude -pthread -std=gnu++11 -s
-AR       := ar
+CXX      := $(CCPREFIX)g++
+CXXFLAGS := -O3 -Iinclude -pthread -std=gnu++11 $(CCSYSROOT)
+AR       := $(CCPREFIX)ar
 ARFLAGS  := rcs
+STRIP    := $(CCPREFIX)strip --strip-all
 
 # Target finali
 LIB_NAME := libPractRand.a
@@ -29,12 +30,12 @@ TOOLS_SRCS := tools/RNG_test.cpp tools/RNG_benchmark.cpp tools/RNG_output.cpp
 
 all: $(LIB_NAME) $(BINS)
 	@echo "Build completata."
-	@du -ks $(LIB_NAME) $(BINS)
+	@du -ks $(LIB_NAME) $(BINS) | sort -n
 
 # Regola per la libreria statica
 $(LIB_NAME): $(LIB_OBJS)
 	$(AR) $(ARFLAGS) $@ $^
-	@# Rimuove i .o dopo la creazione della libreria come richiesto
+	@# Rimuove i .o dopo la creazione della libreria
 	rm -f $(LIB_OBJS)
 
 # Regola generica per compilare i .cpp in .o
@@ -44,12 +45,15 @@ $(LIB_NAME): $(LIB_OBJS)
 # Regole per gli eseguibili
 RNG_test: tools/RNG_test.cpp $(LIB_NAME)
 	$(CXX) -o $@ $< $(CXXFLAGS) $(LIB_NAME)
+	$(STRIP) $@
 
 RNG_benchmark: tools/RNG_benchmark.cpp $(LIB_NAME)
 	$(CXX) -o $@ $< $(CXXFLAGS) $(LIB_NAME)
+	$(STRIP) $@
 
 RNG_output: tools/RNG_output.cpp $(LIB_NAME)
 	$(CXX) -o $@ $< $(CXXFLAGS) $(LIB_NAME)
+	$(STRIP) $@
 
 # Pulizia dei file generati
 clean:

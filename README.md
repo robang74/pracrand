@@ -45,16 +45,16 @@ g++ -o RNG_test tools/RNG_test.cpp $flags
 g++ -o RNG_benchmark tools/RNG_benchmark.cpp $flags
 g++ -o RNG_output tools/RNG_output.cpp $flags
 
-rm -f *.o; du -ks libPractRand.a RNG_*
+rm -f *.o; du -ks *.a RNG_* | sort -n
 ```
 
 Expected results compiled dymamic against glibc:
 
 ```sh
-3636	libPractRand.a
- 260	RNG_benchmark
-2208	RNG_output
-2268	RNG_test
+ 260  RNG_benchmark
+2208  RNG_output
+2268  RNG_test
+3636  libPractRand.a
 ```
 
 Or use the `Makefile` in the standard way `make -j$(nproc)`
