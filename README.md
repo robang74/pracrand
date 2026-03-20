@@ -32,3 +32,17 @@ The PracRand source and website cpy and past fork for github with instrctions fo
 - [Tests_overview.txt](doc/Tests_overview.txt) - How to use RNG_test, general discussion of testing, how to use competitors
 - [Tests_performance.txt](doc/Tests_performance.txt) - speed of testing, not quality - for quality, see Tests_results.txt
 - [to_do.txt](doc/to_do.txt)
+
+## Compiling
+
+```sh
+flags="-O3 -Iinclude -pthread -std=gnu++11"
+g++ -c src/*.cpp src/RNGs/*.cpp src/RNGs/other/*.cpp $flags
+ar rcs libPractRand.a *.o
+
+flags="$flags libPractRand.a"
+g++ -o RNG_test tools/RNG_test.cpp $flags
+g++ -o RNG_benchmark tools/RNG_benchmark.cpp $flags
+g++ -o RNG_output tools/RNG_output.cpp $flags
+rm -f *.o
+```
