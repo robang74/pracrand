@@ -7,7 +7,10 @@ CXX      := $(CCPREFIX)g++
 CXXFLAGS := -O3 -Iinclude -pthread -std=gnu++11 $(CCSYSROOT)
 CXXFLAGS += -ffunction-sections -fdata-sections -flto
 LDFLAGS  += -Wl,--gc-sections
-AR       := $(CCPREFIX)ar
+AR       := $(CCPREFIX)gcc-ar
+NM       := $(CCPREFIX)gcc-nm
+RANLIB   := $(CCPREFIX)gcc-ranlib
+STRIP    := $(CCPREFIX)strip
 ARFLAGS  := rcs
 STRIP    := $(CCPREFIX)strip --strip-all
 
@@ -46,7 +49,7 @@ $(LIB_NAME): $(LIB_OBJS)
 
 # Regole per gli eseguibili
 $(BINS): %: tools/%.cpp $(LIB_NAME)
-	$(CXX) -o $@ $< $(CXXFLAGS) $(LIB_NAME)
+	$(CXX) -o $@ $< $(CXXFLAGS) $(LIB_NAME) $(LDFLAGS)
 	$(STRIP) $@
 
 # Pulizia dei file generati
