@@ -36,7 +36,7 @@ The PracRand source and website cpy and past fork for github with instrctions fo
 ## Compiling
 
 ```sh
-flags="-O3 -Iinclude -pthread -std=gnu++11"
+flags="-O3 -Iinclude -pthread -std=gnu++11 -s"
 g++ -c src/*.cpp src/RNGs/*.cpp src/RNGs/other/*.cpp $flags
 ar rcs libPractRand.a *.o
 
@@ -44,5 +44,15 @@ flags="$flags libPractRand.a"
 g++ -o RNG_test tools/RNG_test.cpp $flags
 g++ -o RNG_benchmark tools/RNG_benchmark.cpp $flags
 g++ -o RNG_output tools/RNG_output.cpp $flags
-rm -f *.o
+
+rm -f *.o; du -ks libPractRand.a RNG_*
+```
+
+Expected results compiled dymamic against glibc:
+
+```sh
+3636	libPractRand.a
+ 260	RNG_benchmark
+2208	RNG_output
+2268	RNG_test
 ```
