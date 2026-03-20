@@ -5,7 +5,7 @@
 # Variabili di compilazione
 CXX      := $(CCPREFIX)g++
 CXXFLAGS := -O3 -Iinclude -pthread -std=gnu++11 $(CCSYSROOT)
-CXXFLAGS += -ffunction-sections -fdata-sections -flto
+CXXFLAGS += -ffunction-sections -fdata-sections # -flto
 LDFLAGS  += -Wl,--gc-sections
 AR       := $(CCPREFIX)gcc-ar
 NM       := $(CCPREFIX)gcc-nm
