@@ -66,35 +66,42 @@ recommended RNG meets a few common requirements:
 
 * The following RNGs are recommended for normal use on 64 bit CPUs.  
 Engine      quality speed  theory  size        notes
-sfc64       3***    5***** 1*      32 bytes    best speed
-jsf64       3***    5***** 0       32 bytes    -
-xsm64       4****   4****  1*      32 bytes    random access
+sfc64       3***    4****  1*      32 bytes    my default recommendation
+jsf64       3***    4****  0       32 bytes    -
+mrc64       3***    4****  1*      24 bytes    -
+mrfast64    2**     5***** 0       16 bytes    -
+rarns64     3***    3***   1*      24 bytes    random access
+xsm64       3***    3***   1*      32 bytes    random access
 arbee       4****   4****  1*      40 bytes    entropy pooling
 trivium     5*****  1*     2**     48 bytes    crypto
-efiix64x384 5*****  3***   1*      3104 bytes  crypto
+efiix64x48  5*****  3***   1*      416 bytes   crypto
 isaac64x256 5*****  2**    2**     4128 bytes  crypto
 
 * The following RNGs are recommended for normal use on 32 bit CPUs.  
 Engine      quality speed  theory  size        notes
-sfc32       3***    5***** 0       16 bytes    best speed
-jsf32       3***    5***** 0       16 bytes    -
-xsm32       3***    4****  1*      16 bytes    random access
-chacha(8)   5*****  1*     3***    124 bytes   crypto + random access
-efiix32x384 5*****  3***   0       1552 bytes  crypto
+sfc32       3***    4****  1*      16 bytes    my default recommendation
+jsf32       3***    4****  1*      16 bytes    -
+mrc32       2**     4****  0       12 bytes    -
+mrfast32    1*      5***** 0       8 bytes     -
+rarns32     3***    3***   2**     12 bytes    -
+xsm32       3***    3***   2**     16 bytes    random access
+chacha(8)   5*****  1*     4****   124 bytes   crypto + random access
+efiix32x48  5*****  3***   1*      832 bytes   crypto
 isaac32x256 5*****  2**    2**     2064 bytes  crypto
-mt19937     2**     3***   4****   2500 bytes  popular
-hc256       5*****  2**    3***    8580 bytes  best quality, best crypto
+hc256       5*****  2**    4****   8580 bytes  best quality, best crypto
+(chacha/salsa speed is based upon non-SIMD implementations; SIMD implementations will be faster)
 
 * The following RNGs are recommended for normal use on 16 bit CPUs.  
 Engine      quality speed  theory  size        notes
-sfc16       2**     5***** 0       8 bytes     fastest RNG & smallest RNG
-efiix16x384 5*****  3***   0       776 bytes   -
+sfc16       2**     4****  1*      8 bytes     -
+mrc16       1*      4****  0       6 bytes     -
+efiix16min  2**     3***   1*      12 bytes    -
+efiix16x48  5*****  3***   1*      776 bytes   -
 
 * The following RNGs are recommended for normal use on 8 bit CPUs.  
 Engine      quality speed  theory  size        notes
-efiix8x384  5*****  3***   0       388 bytes   -
-(not much variety at 8 bit... if anyone needs more let me know... the 16 
-bit ones should work acceptably on 8 bit CPUs too though)
+efiix8min   2**     3***   1*      6 bytes     -
+efiix8x48   5*****  3***   1*      388 bytes   -
 
 Using an RNG of one word size on a CPU of a different word size will incur a 
 performance penalty, but is otherwise fine.  
@@ -123,17 +130,17 @@ for someone to figure out their seed (aka key) or state from examining their
 output.  The following RNGs are recommended for that purpose:
 Engine          quality speed  size        word     crypto   other
 trivium         5*****  1*     48 bytes    64 bit   2**      -
-chacha(8)       5*****  1*     124 bytes   32 bit   1*       random access
-chacha(12)      5*****  1*     124 bytes   32 bit   3***     random access
+chacha(8)       5*****  1*     124 bytes   32 bit   2**      random access
+chacha(12)      5*****  1*     124 bytes   32 bit   4****    random access
 chacha(20)      5*****  0      124 bytes   32 bit   4****    random access
 salsa(8)        4****   1*     140 bytes   32 bit   1*       random access
 salsa(12)       5*****  0      140 bytes   32 bit   3***     random access
 salsa(20)       5*****  0      140 bytes   32 bit   4****    random access
 sha2_based_pool 5*****  0      302 bytes   8/64 *   3***     entropy pooling
-efiix8x384      5*****  3***   388 bytes   8 bit    0        -
-efiix16x384     5*****  3***   776 bytes   16 bit   1*       -
-efiix32x384     5*****  3***   1552 bytes  32 bit   1*       -
-efiix64x384     5*****  3***   3104 bytes  64 bit   1*       -
+efiix8x48       5*****  3***   52 bytes    8 bit    0        -
+efiix16x48      5*****  3***   104 bytes   16 bit   1*       -
+efiix32x48      5*****  3***   208 bytes   32 bit   1*       -
+efiix64x48      5*****  3***   416 bytes   64 bit   1*       -
 isaac32x256     5*****  2**    2064 bytes  32 bit   2**      -
 isaac64x256     5*****  2**    4128 bytes  64 bit   2**      -
 hc256           5*****  2**    8580 bytes  32 bit   5*****   -
@@ -143,15 +150,14 @@ to what sort of RNG algorithms you can use in a cost-effective manner.
 1. If multiplication is very costly:
 	No problem; most of the current recommended RNGs do not use multiplication.  
 	The exceptions are:
-		xsm32 uses multiplication
-		xsm64 uses multiplication
-		mt19937 uses multiplication, but only during seeding
+		mrc64, mrc32, and mrc16 use multiplication
+		mrfast64 and mrfast32 use multiplication
 2. If you can not use floating point math:
-	No problem; none of the current recommended RNGs use floats.  
+	No problem; none of the current recommended RNGs use floating point.  
 3. If memory is a major constraint:
 	No problem, just look at the "size" column on the above charts.  In 
-	particular sfc, jsf, xsm, arbee, trivium, and chacha are reasonably 
-	small for their quality and feature set.  
+	particular mrc, mrsf, sfc, jsf, xsm, arbee, trivium, and chacha are 
+	reasonably small for their quality and feature set.  
 4. If you can not do integer math except by emulating it on floating point:
 	That's a problem.  All of the PractRand RNGs will tend to be slow on your 
 	hardware.  
@@ -159,8 +165,8 @@ to what sort of RNG algorithms you can use in a cost-effective manner.
 	Not a big problem.  Even hardware that lacks native barrel shifts can 
 	generally emulate them at reasonable speeds.  If for some reason you want to 
 	avoid all use of barrel shifts anyway, some PractRand recommended RNGs that 
-	avoid barrel shifts include isaac32x256, isaac64x256, mt19937, and Trivium.  
-6. If integer sizes on your hardware not 8, 16, 32, or 64 bits:
+	avoid barrel shifts include isaac32x256, isaac64x256, and Trivium.  
+6. If integer sizes on your hardware are not 8, 16, 32, or 64 bits:
 	That's a problem.  Some of the recommended RNG algorithms could still be 
 	efficient, but they might require a customized implementation to optimize 
 	for your specific architecture.  
@@ -184,7 +190,7 @@ when used in the same way in all future versions, unless bugs are discovered:
 	chacha (aka ChaCha) (for even numbers of rounds only)
 	salsa (aka Salsa20) (for even numbers of rounds only)
 Other recommended RNGs in PractRand may vary from version to version, though 
-they should stabilize by the time PractRand approaches version 1.0.  
+they should stabilize as PractRand approaches version 1.0.  
 
 
 *****************************************************************************
@@ -206,26 +212,23 @@ quality: (rated from 0 to 5 stars)
 	statespace, and how much I trust the algorithm.  More specifically...
 	Empirical Testing:
 		1 star - must pass 1 GB of PractRand standard
-			also, must pass TestU01 SmallCrush
+			also, must pass TestU01 SmallCrush and gjrand pmcp --small
 		2 star - must pass 16 GB of PractRand standard
-			also, must pass TestU01 SmallCrush
-			also, must pass gjrand mcp --standard
+			also, must pass TestU01 SmallCrush and gjrand pmcp --standard
 		3 star - must pass 256 GB of PractRand standard
-			also, must pass TestU01 Crush
-			also, must pass gjrand mcp --big
-		4 star - must pass 1 TB of PractRand standard
-			also, must pass TestU01 Crush & BigCrush
-			also, must pass gjrand mcp --huge
+			also, must pass TestU01 Crush and gjrand pmcp --big
+		4 star - must pass 4 TB of PractRand standard
+			also, must pass TestU01 Crush & BigCrush, and gjrand pmcp --tera
 		5 star - must not have any known failures on general-purpose tests
 	Cycle Length (aka period):
 		1 star - minimum cycle length of at least 2**40 or
 			average cycle length of at least 2**45
-		2 star - minimum cycle length of at least 2**52 or
-			average cycle length of at least 2**62
-		3 star - minimum cycle length of at least 2**59 or
-			average cycle length of at least 2**79
-		4 star - minimum cycle length of at least 2**64 or
-			average cycle length of at least 2**104
+		2 star - minimum cycle length of at least 2**45 or
+			average cycle length of at least 2**55
+		3 star - minimum cycle length of at least 2**50 or
+			average cycle length of at least 2**70
+		4 star - minimum cycle length of at least 2**55 or
+			average cycle length of at least 2**95
 		5 star - minimum cycle length of at least 2**80 or
 			average cycle length of at least 2**160
 	Statespace:
@@ -254,6 +257,11 @@ quality: (rated from 0 to 5 stars)
 		sfc64                 3          5          5        5       3
 		xsm32                 3          4          4        3       3
 		xsm64                 4          5          5        4       4
+		mrfast32              1                     2        2       1
+		mrfast64              2          5          4        3       2
+		mrc16                 1          3          1        1       1
+		mrc32                 2          5          4        3       2
+		mrc64                 3          5          5        4       3
 		arbee                 4          5          5        5       4
 		isaac32x256           5          5          5        5       5
 		isaac64x256           5          5          5        5       5
@@ -315,6 +323,31 @@ quality: (rated from 0 to 5 stars)
 			cycle: 5 - always 2**128, future-proof
 			states: 4 - 2**192, good enough for anything now but not completely future-proof
 			trust: 4 - the extra bits helped significantly
+		mrfast32
+			empirical: 
+			cycle: 2
+			states: 2
+			trust: 1
+		mrfast64
+			empirical: 
+			cycle: 4
+			states: 3
+			trust: 2
+		mrc16
+			empirical: 
+			cycle: 1
+			states: 1
+			trust: 1
+		mrc32
+			empirical: 
+			cycle: 4
+			states: 3
+			trust: 2
+		mrc64
+			empirical: 
+			cycle: 5
+			states: 4
+			trust: 3
 		mt19937               2          2          5        5       3
 			empirical: 2 - it fails binary rank tests, linear complexity tests, 
 				and a few closely related variants.  In practice that means it 
@@ -344,26 +377,10 @@ quality: (rated from 0 to 5 stars)
 			cycle: 5* - normally cycle length is 2**68, but I added a tweak to allow 2**100 in some circumstances
 			states: 5 - future-proof
 			trust: 5 - trustworthy
-	quality subscores for some candidates and rejects for PractRand recommended RNGs:
-		name                  overall    empirical  cycle    states  trusted
-		vf16                  1          4          1        1       2
-		vf32                  3          5          3        3       3
-		vf64                  3          5          5        4       3
-		vfm32                 2          5          2        2       2.5
-		vfm64                 3          5          4        3       3.5
-		ranrot_alternative8   3          3          5        5       2
-		ranrot_alternative16  3          5          5        5       3
-		ranrot_alternative32  3          5          5        5       3
-		ranrot_alternative64  3          5          5        5       3
-		sfc16 (v3)            1          2          1        1       1.5
-		sfc32 (v3)            2          5          3        3       2
-		sfc64 (v3)            2          5          5        4       2
-		lcg(32,64)            0          1          0/4      0/2     1
-		clcg(32,96)           2          4          4/5      2/3     2
-	quality subscores for some non-PractRand RNG examples:
+	quality subscores for some other RNG examples:
 		name                  overall    empirical  cycle    states  trusted
 		typical libc rand     0          0          0        0       0
-		rand48                0          0          1/0      1/0     0
+		rand48                0          0          1/0      1/0     0   (low-bit subcycles)
 		ICG, m=2**31-1        0          0          0        0       3.5
 		RC4                   3.5        4          5        5       3.5
 		KISS93                2          2.5        5        3       2
@@ -379,11 +396,6 @@ quality: (rated from 0 to 5 stars)
 			cycle: 1 - technically 2**48, but more like 2**17 in practice
 			states: 1 - technically 2**48, but more like 2**17 in practice
 			trust: 0 - it has no rightward mixing, 2**17 subcycle
-		RC4                   3          3          5        5       3.5
-			empirical: 3 - passes a lot of tests, but fails PractRand after 1 TB
-			cycle: 5 - more than anyone will ever need
-			states: 5 - more than anyone will ever need
-			trust: 3.5 - it looks mostly good... but slightly funky... hard to evaluate
 		ICG, m=2**31-1        0          0          0        0       3.5
 			note: too slow to be of any practical use
 			empirical: 0 - passes a good amount of tests for its size, but that's 
@@ -393,6 +405,11 @@ quality: (rated from 0 to 5 stars)
 			trust: 3.5 - it looks good... but rather funky... hard to evaluate; 
 				irrelevant anyway for performance reasons and because the cycle length 
 				and state size are both much too small
+		RC4                   3          3          5        5       3.5
+			empirical: 3 - passes a lot of tests, but fails PractRand after 1 TB
+			cycle: 5 - more than anyone will ever need
+			states: 5 - more than anyone will ever need
+			trust: 3.5 - it looks mostly good... but slightly funky... hard to evaluate
 		KISS93                2          3          5        3       2
 			empirical: 3 - passes a lot of tests, but fails a single subtest of BigCrush and 
 				eventually PractRand at 2TB
@@ -426,9 +443,11 @@ speed: (rated from 0 to 5 stars)
 		4 stars - fast
 		5 stars - very fast
 	Speed is in arbitrary units.  It's a bit subjective since actual 
-	speed will vary with the circumstances in complex ways.  
-	Typically a 1 star difference in speed ratings corresponds to 
-	about a 30% difference in performance.  
+	speed will vary with the circumstances in complex ways.  I 
+	recommend you run RNG_benchmark on your target platform to see 
+	real numbers rather than use the speed ratings.  The speed 
+	ratings are just a quick summary of how PRNGs perform on my 
+	system.  
 	Also take note of the output size - if an RNG outputs more bits 
 	per call then fewer calls will be necessary for many purposes.  
 	Also take note of the word size - if an RNG is run on a computer 
@@ -456,12 +475,19 @@ theory: (rated from 0 to 5 stars)
 	5 stars - numerous flaws of the RNG are thoroughly documented 
 		(generally not possible for high quality RNGs)
 
+	Most recommended algorithms have relatively low theory ratings, 
+	because in practice a high theory rating means that the algorithm 
+	is highly structured in ways that make it easy to perform academic 
+	analysis on - and bad at producing pseudorandom numbers.  There are 
+	PRNG algorithms with high theory ratings (pure LCGs, LFSRs, etc) 
+	but I generally don't recommend them, because they suck.  
+
 size: (in bytes)
 	This is the size in bytes of the RNG implementation.  Generally a 
 	larger number means that the RNG has a better statespace size and 
 	cycle length, but is slower to initialize, uses more RAM (though 
 	that's usually not significant on desktops), performs worse in rapid 
-	context switching, etc.  
+	context switching, is less likely to be usefully inlined, etc.  
 
 word: (usually either 8, 16, 32, or 64 bit integers)
 	This is the size of integers that the RNG does math on internally.  
@@ -575,12 +601,18 @@ The short version is:
 	xsm32 / xsm64
 		pros: random access, small
 		cons: requires fast hardware multiplication (i.e. not for low-end embedded platforms)
+	mrsf32 / mrsf64
+		pros: very fast, very small
+		cons: requires fast multiplication, some bad cycles
+	mrc16 / mrc32 / mrc64
+		pros: fast, small
+		cons: requires fast multiplication
 	trivium
 		pros: small, some cryptographic security, extremely simple hardware implementation, high quality
 		cons: slow in software
 	sha2_based_pool
 		pros: high quality, cryptographic security, entropy pooling
-		cons: VERY VERY SLOW
+		cons: VERY SLOW
 	arbee
 		pros: small, fast, entropy pooling
 		cons: none
@@ -593,7 +625,7 @@ small fast RNGs:
 	Small fast RNGs range from 2 to 5 words in size (16 to 40 bytes on 64 bit 
 	systems), and tend to be the fastest category of RNGs.  
 	jsf32 / jsf64
-		actual name: unnamed (I called it jsf for Jenkin's Small Fast RNG)
+		actual name: unnamed (I called it jsf for Jenkin's Small Fast PRNG)
 		This algorithm is included because it is a good small fast chaotic 
 		RNG and it is better studied that other small fast chaotic RNGs.  
 		This algorithm was written by Bob Jenkins.  
@@ -633,7 +665,7 @@ small fast RNGs:
 		This algorithm is included because of its combination of very fast 
 		speed, good statistical properties, small size, and (on larger 
 		word sizes) guaranteed minimum cycle length.  
-		I wrote this algorithm.  So I might be prejudiced.  
+		I wrote this algorithm.  So I might be biased.  
 		--
 		This has not been as thoroughly tested as the jsf algorithm, but 
 		on my tests so far it appears superior to jsf in both quality 
@@ -660,6 +692,67 @@ small fast RNGs:
 			word size:        16 / 32 / 64 bit
 			size:             8 / 16 / 32 bytes
 			statespace:       2**64 / 2**128 / 2**256
+			multi-cyclic:     yes
+			reversible:       yes
+	mrsf32 / mrsf64
+		actual name: multiply & rotate, small & fast ; or maybe Mrs. Fast
+		High-speed multiplication is sufficiently ubiquitious now, I guess 
+		it's time I start using it in PRNG algorithms more.  In particular, 
+		I tried to write a PRNG algorithm that could fit in to just two 
+		registers, to make it easy to keep state in registers even while doing 
+		other things that require plenty of registers.  
+		--
+		This algorithm is still fairly new, and not as well studied as others.  
+		I don't trust the 32 bit variant very far.  
+		--
+		details:
+			quality subscores (scored from 0 to 5 stars):
+				empirical:      / 
+				cycle length:  3 / 3
+				statespace:    3 / 4
+				trusted:       1 / 2
+				overall:       1 / 2
+			speed:            very fast
+			operations used:  addition, bitwise, fixed shifts, multiplication
+			full word output: yes
+			buffered:         no
+			random access:    no
+			entropy pooling:  no
+			crypto security:  none
+			minimum cycle:    1
+			word size:        32 / 64 bit
+			size:             8 / 16 bytes
+			statespace:       2**64 / 2**128
+			multi-cyclic:     yes
+			reversible:       yes
+	mrc16 / mrc32 / mrc64
+		actual name: multiply, rotate, count ; or Mr. Count
+		High-speed multiplication is sufficiently ubiquitious now, I guess 
+		it's time I start using it in PRNG algorithms more.  This is similar 
+		to mrsf above, but it includes a driving counter to avoid short 
+		cycles.  Doing so might also improve quality somewhat?  
+		--
+		This algorithm is still fairly new, and not as well studied as others.  
+		I really don't trust the 16 bit variant very far.  
+		--
+		details:
+			quality subscores (scored from 0 to 5 stars):
+				empirical:      / 
+				cycle length:  3 / 3
+				statespace:    3 / 4
+				trusted:       1 / 2
+				overall:       1 / 2
+			speed:            very fast
+			operations used:  addition, bitwise, fixed shifts, multiplication
+			full word output: yes
+			buffered:         no
+			random access:    no
+			entropy pooling:  no
+			crypto security:  none
+			minimum cycle:    1
+			word size:        32 / 64 bit
+			size:             8 / 16 bytes
+			statespace:       2**64 / 2**128
 			multi-cyclic:     yes
 			reversible:       yes
 crypto / high quality RNGs:
@@ -824,8 +917,8 @@ crypto / high quality RNGs:
 		secure.  
 		*            ChaCha    ChaCha   Salsa    Salsa
 		Rounds       quality   security quality  security
-		20(default)  5*****    4****    5*****   4****
-		12           5*****    3***     5*****   3***
+		20           5*****    4****    5*****   4****
+		12           5*****    4****    5*****   3***
 		8            5*****    2**      4****    1*
 		6            4****     0        3***     0
 		4            3***      0        1*       0
@@ -835,7 +928,7 @@ crypto / high quality RNGs:
 		work fine in non-SIMD implementations, but they are 
 		significantly faster when using SIMD.  My implementation currently 
 		does not use SIMD do to inability to guarantee memory alignment
-		properly.  
+		properly portably.  I should revisit that.  
 		--
 		It looks kinda like a block cypher applied to a counter - the 
 		state transition function is trivial, but the output hashing is 
@@ -853,7 +946,8 @@ crypto / high quality RNGs:
 		compatibility with other chacha implementations, but enabled 
 		when using PractRand-specific seeding options (like autoseeding) 
 		when compatibility should not be an issue.  It can also be 
-		manually enabled when using a chacha seeding format.  
+		manually enabled when using a chacha seeding format.  This is 
+		largely irrelevant in practice.  
 		--
 		details:
 			quality subscores (scored from 0 to 5 stars):

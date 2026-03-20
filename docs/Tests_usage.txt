@@ -2,12 +2,12 @@
 
 There are several different interfaces which can be used to access 
 PractRands statistical tests for pseudo-random number generators.  
-Internally each higher level interfaces is implemented using the next 
-lowest level interface.  
+Internally each higher level interface is implemented using the next 
+lower level interface.  
 
-The high level interface (and thus the simplest for a normal user) is 
-the tool RNG_test, which can be controlled from the command line.  See 
-section 1 of Tests_overview.txt and also the relevant section of 
+The highest level interface (and thus the simplest for a normal user) 
+is the tool RNG_test, which can be controlled from the command line.  
+See section 1 of Tests_overview.txt and also the relevant section of 
 tools.txt for information on how to use that.  
 
 ***********************************************************************

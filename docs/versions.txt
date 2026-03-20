@@ -1,3 +1,90 @@
+version 0.96
+	general
+		I ran everything through valgrind and a few other things, fixed anything that looked like it could cause problems.  
+		Tweaked structure of test batteries to improve multithreading slightly.  
+			I still need to rewrite the multithreading code to eliminate the continual creation & destruction of new threads...
+		I've started putting a little more work in to automation, and automation support.  
+			I'm trying to put together a set of scripts that can automatically ask PractRand for a giant list of bad PRNGs to test...
+			then test them all using PractRand, TestU01, gjrand, and dieharder
+			and support queries of the results, for quickly looking up a PRNG with any particular desired set of results across those
+			and ideally, produce in an automated fashion an optimal list of tests
+				optimal in the sense of finding bias in as many PRNGs as possible as quickly as possible
+			such that I could write a new test, lets some scripts run on it, 
+				and they'd report which other tests it outdated, or was most competitive against, etc
+				and which sorts of PRNGs it was most effective against, etc
+		Other command line stuff now supported includes things like: ./RNG_test "xor(jsf32,AddToSeed(jsf32,1))"
+			That would create two instance of the jsf32 PRNG, 
+			seed one of them with a randomly chosen seed value, 
+			seed the other one with a seed value 1 higher
+			xor the output of the two different jsf32 instances
+			and pass the results of the xor to the statistical tests
+	distributions
+		gaussian distribution code rewritten.
+			Currently uses popcounts to index regions of the distribution, then quadratic fits within each region.  
+				I may change that to cubic fits in the future.  Or to a different algorithm entirely.  
+			There's code in non_uniform.cpp for a half dozen other approaches too, that's just the one I'm happiest with atm.  
+		uniform integer distributions had their names changed
+			but the underlying implementations remain unchanged
+		uniform floating point distributions had their names changed
+			but the underlying implementations remain largely unchanged
+	RNGs
+		mrc64 / mrc32 / mrc16
+			Very fast.  Uses multiplication.  
+		mrsf64 / mrsf32
+			Even faster.  Also uses multiplication.  State fits in just 2 registers.  More prone to short cycles than mrc64/32/16.  
+		rarns* and xsm*
+			Removed yet again.  Still don't like the results of my analysis.  My output hashing just wasn't good enough to fully hide the flaws.  
+			However, general xor-based generator fast-forwarding code is finally incorporated in to PractRand, even if very little actually uses it atm.  
+	tests
+		DC6
+			Calibration improved.  It was producing excessively paranoid p-values at some test lengths before, that should be fixed now.  
+		FPF
+			Test unchanged, but the format in which its name and parameterization is listed in output was adjusted slightly for brevity.  
+		BDayS2
+			A new test.  Now part of the core test set.  
+			It finds bias in some linear PRNGs that were getting by other tests in PractRand.  
+			Currently configured to not take much CPU time.  
+			I might fix up its p-value quality a little more, maybe improve how it handles the switchover in modes.  
+		LPerm16
+			Part of the expanded test set.  
+			It is currently set to refuse to report any result if the test length exceeds about 512 terabytes.  
+			This is because it would have a high risk of false positives on tests that long.  
+				That is a VERY long test length.  I thought it was too long for anyone but me to notice...
+				...until then I saw a blog post from M.E. O'Neill where she was running tests even longer than I do
+		APerm16
+			This suffers from the same issues as LPerm16 above.  
+	probably many other changes I can't remember
+version 0.95
+	general
+		adjusted code slightly to eliminate most warnings when building on g++ or clang++
+	tests
+		NearS2
+			Finds bias in a fair variety of PRNGs.  
+			It does not work well on anything bigger than 256 bits of state in its current configuration though.  
+			It looks for medium-short ranged correlations.  It has a footprint of 384 bits, a stride of 64 bits, and is reasonably fast.  
+			Currently trying it in the expanded test set, if it performs particularly well I might promote it to the core test set but that is unlikely.	
+		NearS3
+			Doing slightly worse than NearS2, but maybe a bit cleaner in some ways, and it finds somewhat different biases.  
+			Unfortunately, neither finds any biases *quickly*.  
+		BRank
+			Revised to target a wider variety of matrix sizes.  
+		FPMulti
+			Rewritten.  Currently only FPG is enabled and working, but it seems to work adequately.  
+			I'm testing it out in the expanded test set.  It will probably stay there, though if additional subtests get written I suppose it might improve.  
+		DC7
+			I'm testing it out in the expanded test set, but it seems kinda useless so I may get rid of it.  
+		BirthdaySystematic64
+	RNGs
+		xsm64/32/16
+			revision?
+		rarns64/32/16
+			3-word xor-based-generator, with output hashing sufficient to protect it from BRank ; 16 bit variant fails tests eventually, 32 & 64 don't
+	tools
+		--version
+		RNG_to_TestU01
+			code I'm not using on unix to test PractRand RNGs with TestU01 SmallCrush/Crush/BigCrush
+				I've also used slightly different code on windows for that, 
+				but that's likely less portable since it connects to a customized version of TestU01
 version 0.94
 	RNGs
 		xsm64
@@ -33,7 +120,7 @@ version 0.94
 				and it doesn't take much resources (largely because it's set up to only test a small fraction of the data stream)
 				this one primarily targets LCGs
 			FPF
-				removed "all2" subtest
+				removed "all2" subtest - I didn't trust the p-values it produced, not on extreme results
 		expanded tests:
 			added a new test, mod3n
 			added a new test, TMFn
@@ -379,7 +466,7 @@ version 0.85
 		added entropy pools documentation
 		numerous revisions to old documentation
 	example program:
-		split example program in to two example programs:
+		split example program in to three example programs:
 			program 1: RNG_benchmark
 				RNG speed testing
 			program 2: RNG_output

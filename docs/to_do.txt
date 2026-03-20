@@ -1,3 +1,16 @@
+
+tmp:
+	revisit calibration of 
+	BRank scoring should consider using math_normaldist_to_suspicion() instead of treating normally distributed scores as suspicions?
+		actually, it should be using helpers like my_test
+			maybe my_test_ordered, my_test_unordered, my_test_unordered_p_to_score, my_test_ordered_p_to_score
+			or with a namespace?  MyTest::test_ordered, MyTest::test_unordered, ...
+				void MyTest::partial_score_unordered_event(double p, double *score_raw, double *score_mean, double *score_meansqr, double *sum_p) {double s = -std::log(p); *score_raw = s; *score_mean += s * p; *score_meansqr += s * s * p; *sum_p += p;}
+				void MyTest::partial_score_ordered_event(double min_pvalue, double max_pvalue, double *score_raw, double *score_mean, double *score_meansqr, double *sum_p) {double mean_pvalue = (min_pvalue + max_pvalue) * 0.5; double p = max_pvalue - min_pvalue; double s = -std::log(mean_pvalue) - std::log(1-mean_pvalue); *score_mean += s * p; *score_meansqr += s * s * p; *sum_p += p;}
+				maybe a long-tail p parameter?
+	NearSeq3 needs lots more work, and it's entirely actionable
+		NearSeq3 is now working adequately, though perhaps it should be compared to NearSeq2 more, since the two seem to be failing different RNGs
+
 for 0.94:
 	mod3n - ready, though uncalibrated
 	TMFn - ready, though uncalibrated

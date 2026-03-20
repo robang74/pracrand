@@ -14,20 +14,26 @@
 	input across big and little endian platforms.  However, small errors 
 	in endian portability may have crept in.  Furthermore, in many 
 	scenarios it can be very difficult for a user to correctly handle 
-	endianness portability, indepent of the behavior of library.  Thus, 
+	endianness portability, independent of the behavior of library.  Thus, 
 	it is recommended that users who need strict endian independence 
 	think carefully about what that means and do plenty of testing.  
 
 2. Portability of PractRand itself:
 	I have built PractRand on:
-		gcc 4.6.1 / x86-64 (64-bit) / Ubuntu Linux
-		gcc 4.5.4 / MinGW x64 (64-bit)
-		gcc 3.4.5 / MinGW x86 (32-bit) - though TLS was not supported
-		VC 2010 x86 (32-bit)
-		VC 2013 x86 (32-bit)
+		clang 18.1.3 / x86-64 / Mint Linux
+		clang 19.1.7 / x86-64 / Fedora Linux
+		gcc 13.3.0 / x86-64 / Mint Linux
+		gcc 14.3.1 / x86-64 / Fedora Linux
+		gcc 4.6.1 / x86-64 / Ubuntu Linux
+		gcc 4.5.4 / MinGW x64 
+		gcc 3.4.5 / MinGW x86 - though TLS was not supported
+		VC 2026 x64 / Windows 11
+		VC 2026 x86 / Windows 11
+		VC 2013 x64 / Windows 7, 8, and 10
+		VC 2013 x86 / Windows 7, 8, and 10
+		VC 2010 x86 / Windows XP and 7 I think
 
-	PractRand uses a subset of C++98 and/or C99.  
-	explicitly: C++11 support is not required.  Same for C++13.  
+	PractRand uses a subset of C++11 and/or C99.  
 
 	When compiling on a different platform, the first thing that must be 
 		done is a few minor edits in include/PractRand/config.h
@@ -48,13 +54,13 @@
 			 exceptions are not required
 		the standard C/C++ library, including STL
 			 all decent C++ compilers support this
-		endianness must be either big endian or little endian, not "middle endian"
+		endianness must be either big endian or little endian, NOT "middle endian"
 			all remotely modern architectures qualify
 		auto-seeding & automatic entropy work best on either Windows or *nix
 			see platform_specifics.cpp
 			You can add code there for your platform
 		IEEE compliant floating point
-			only required for randf & randlf methods
+			only required for rand_float & rand_double methods
 				and even then nothing very bad happens if it's not compliant
 				and it can be adjusted for non-IEEE formats in RNG_internals.h
 

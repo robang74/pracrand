@@ -6,7 +6,7 @@ Use of PractRand Random Number Generators in multithreaded programs:
 The RNGs in PractRand are thread-safe so long as the user does not try 
 to share RNG instances between threads.  While a lock could be added to 
 an RNG to allow it to be shared, that is highly undesirable from a 
-performance perspective.  The recommended solution is to have a seperate 
+performance perspective.  The recommended solution is to have a separate 
 RNG object for each thread.  The easiest way to do that is to tell the 
 compiler that you want the RNG instance located in thread-local-storage.
 On MSVC you do that by prefixing the type name with "__declspec(thread)".
